@@ -1,0 +1,1 @@
+/usr/bin/c++ -Wl,--dependency-file=CMakeFiles/SDL3_TextRendering.dir/link.d CMakeFiles/SDL3_TextRendering.dir/main.cpp.o -o SDL3_TextRendering  /usr/lib/libSDL3_ttf.so.0.2.2 /usr/lib/libSDL3.so.0.2.16
