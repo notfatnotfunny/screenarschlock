@@ -5,7 +5,10 @@
 #include <sstream>
 #include <iomanip>
 #include <iostream>
-#include <bits/stdc++.h>
+
+#ifndef RSC_PATH
+#define RSC_PATH "./rsc" 
+#endif
 
 
 int main(int argc, char* argv[]) {
@@ -39,18 +42,8 @@ int main(int argc, char* argv[]) {
 
     SDL_Color textColor = {255, 255, 255, 255};
 
-    std::ifstream rsc_file("../rsc_path.txt");
-    if (!rsc_file.is_open()) {
-	    std::cout << "error opening rsc file\n";
-    }
-
-    std::string rsc_path_str;
-    std::getline(rsc_file, rsc_path_str);
-
-    // std::cout << rsc_path_str << std::endl;
-
-    rsc_path_str = rsc_path_str + "/rsc/fonts/OpenSans-Bold.ttf";
-    const char* fontPath = rsc_path_str.c_str();
+    const std::string fontPath = std::string(RSC_PATH) + "/fonts/OpenSans-Bold.ttf";
+    std::cout << fontPath << std::endl;
 
     bool running = true;
     SDL_Event event;
@@ -109,7 +102,7 @@ int main(int argc, char* argv[]) {
             if (font) {
                 TTF_CloseFont(font);
             }
-            font = TTF_OpenFont(fontPath, fontSize);
+            font = TTF_OpenFont(fontPath.c_str(), fontSize);
             if (!font) {
                 SDL_Log("Failed to load font: %s", SDL_GetError());
                 break;
