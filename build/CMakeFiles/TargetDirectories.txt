@@ -1,3 +1,0 @@
-/home/notfatnotfunny/Documents/codeIsFun/screenlock/build/CMakeFiles/screenlock.dir
-/home/notfatnotfunny/Documents/codeIsFun/screenlock/build/CMakeFiles/edit_cache.dir
-/home/notfatnotfunny/Documents/codeIsFun/screenlock/build/CMakeFiles/rebuild_cache.dir

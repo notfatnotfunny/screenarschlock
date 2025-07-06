@@ -1,1 +1,0 @@
-/usr/bin/c++ -L/usr/lib -lSDL3_ttf -lSDL3 -lwayland-client -Wl,--dependency-file=CMakeFiles/MyApp.dir/link.d CMakeFiles/MyApp.dir/test.cpp.o -o MyApp  /usr/lib/libQt6Widgets.so.6.9.1 /usr/lib/libQt6Gui.so.6.9.1 -lSDL3_ttf -lSDL3 -lwayland-client /usr/lib/libGLX.so /usr/lib/libOpenGL.so /usr/lib/libQt6Core.so.6.9.1
