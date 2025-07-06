@@ -5,6 +5,8 @@
 #include <sstream>
 #include <iomanip>
 #include <iostream>
+#include <bits/stdc++.h>
+
 
 int main(int argc, char* argv[]) {
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
@@ -35,8 +37,20 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    const char* fontPath = "/home/notfatnotfunny/Documents/codeIsFun/screenlock/OpenSans-Bold.ttf";
     SDL_Color textColor = {255, 255, 255, 255};
+
+    std::ifstream rsc_file("../rsc_path.txt");
+    if (!rsc_file.is_open()) {
+	    std::cout << "error opening rsc file\n";
+    }
+
+    std::string rsc_path_str;
+    std::getline(rsc_file, rsc_path_str);
+
+    // std::cout << rsc_path_str << std::endl;
+
+    rsc_path_str = rsc_path_str + "/rsc/fonts/OpenSans-Bold.ttf";
+    const char* fontPath = rsc_path_str.c_str();
 
     bool running = true;
     SDL_Event event;

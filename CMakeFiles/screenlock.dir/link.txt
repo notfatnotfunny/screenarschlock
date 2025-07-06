@@ -1,1 +1,0 @@
-/usr/bin/c++ -Wl,--dependency-file=CMakeFiles/screenlock.dir/link.d CMakeFiles/screenlock.dir/main.cpp.o -o screenlock  /usr/lib/libSDL3_ttf.so.0.2.2 /usr/lib/libSDL3.so.0.2.16
