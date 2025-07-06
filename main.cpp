@@ -5,6 +5,36 @@
 #include <sstream>
 #include <iomanip>
 #include <iostream>
+#include <vector>
+#include <stdexcept>
+#include <cmath>
+
+template <typename T>
+std::vector<T> operator+(const std::vector<T>& a, const std::vector<T>& b) {
+    if (a.size() != b.size()) {
+        throw std::invalid_argument("Vectors must be of the same size.");
+    }
+
+    std::vector<T> result(a.size());
+    for (size_t i = 0; i < a.size(); ++i) {
+        result[i] = a[i] + b[i];
+    }
+    return result;
+}
+
+template <typename T>
+std::vector<T> operator-(const std::vector<T>& a, const std::vector<T>& b) {
+    if (a.size() != b.size()) {
+        throw std::invalid_argument("Vectors must be of the same size.");
+    }
+
+    std::vector<T> result(a.size());
+    for (size_t i = 0; i < a.size(); ++i) {
+        result[i] = a[i] - b[i];
+    }
+    return result;
+}
+
 
 #ifndef RSC_PATH
 #define RSC_PATH "./rsc" 
@@ -40,6 +70,22 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
+    std::string passwd = "1432";
+    std::vector<float> m1 = {1/4.0f, 1/2.0f};
+    std::vector<float> m2 = {3/4.0f, 1/2.0f};
+    std::vector<float> m3 = {1/4.0f, 3/4.0f};
+    std::vector<float> m4 = {3/4.0f, 3/4.0f};
+    std::vector<float>* p1 = &m1;
+    std::vector<float>* p2 = &m2;
+    std::vector<float>* p3 = &m3;
+    std::vector<float>* p4 = &m4;
+    std::vector<std::vector<float>*> M = {
+	    p1, p2, p3, p4
+    }; 
+    std::string passwd_check = "";
+
+
+
     SDL_Color textColor = {255, 255, 255, 255};
 
     const std::string fontPath = std::string(RSC_PATH) + "/fonts/OpenSans-Bold.ttf";
@@ -51,10 +97,9 @@ int main(int argc, char* argv[]) {
     // Store last font size to avoid redundant reloads
     int lastFontSize = 0;
     TTF_Font* font = nullptr;
-    float xi;
-    float yi;
-    float xf;
-    float yf;
+    std::vector <float> pos_i = {0,0};
+    std::vector <float> pos_f = {0,0};
+    std::vector <float> pos = {0,0};
 
     while (running) {
         while (SDL_PollEvent(&event)) {
@@ -62,43 +107,82 @@ int main(int argc, char* argv[]) {
                 running = false;
             }
 	    if (event.tfinger.type == SDL_EVENT_FINGER_DOWN) {
-		    xi = event.tfinger.x;
-		    yi = event.tfinger.y;
+
+		    pos_i[0] = event.tfinger.x;
+		    pos_i[1] = event.tfinger.y;
+		    pos[0] = event.tfinger.x;
+		    pos[1] = event.tfinger.y;
 		    std::cout << "iniziale\n";
-		    std::cout << "posizione x: " << xi << std::endl;
-		    std::cout << "posizione y: " << yi << std::endl;
+		    std::cout << "posizione x: " << pos_i[0] << std::endl;
+		    std::cout << "posizione y: " << pos_i[1] << std::endl;
 
 	    }
-	    if(event.tfinger.type == SDL_EVENT_FINGER_UP) {
+	    if (event.tfinger.type == SDL_EVENT_FINGER_MOTION) {
+		    std::vector <float> diff = {event.tfinger.dx, event.tfinger.dy};
+		    // std::cout << "spostamento dx: " << diff[0] << std::endl;
+		    // std::cout << "spostamento dy: " << diff[1] << std::endl;
+
+		    pos = pos + diff;
+
+		    if (passwd_check.size() != 4) {
+			    for (int i = 0; i<M.size(); i++) {
+				    if (M[i]) {
+					    std::vector<float> distance = *(M[i]) - pos;
+					    float abs_diff = sqrt(pow(distance[0],2) + pow(distance[1],2));
+					    // std::cout << "absolute difference: " << abs_diff << std::endl;
+					    if (abs_diff < 0.05){
+						    int num = i+1;
+						    passwd_check = passwd_check + std::to_string(num);
+						    std::cout << "found " << i << std::endl;
+						    M[i] = NULL;
+					    }
+				    }
+			    }
+		    }
+		    else {
+			    if (passwd_check == passwd){
+				    running = false;
+			    }
+		    }
+	    }
+	    if (event.tfinger.type == SDL_EVENT_FINGER_UP) {
 		    // Assuming a finger down event before!!
-		    xf = event.tfinger.x;
-		    yf = event.tfinger.y;
+		    pos_f[0] = event.tfinger.x;
+		    pos_f[1] = event.tfinger.y;
 		    std::cout << "finale\n";
-		    std::cout << "posizione x: " << xf << std::endl;
-		    std::cout << "posizione y: " << yf << std::endl;
+		    std::cout << "posizione x: " << pos_f[0] << std::endl;
+		    std::cout << "posizione y: " << pos_f[1] << std::endl;
 
 		    std::cout << "differenza\n";
-		    float delta_x = xf - xi;
-		    float delta_y = yf - yi;
-		    std::cout << "delta x: " << delta_x << std::endl;
-		    std::cout << "delta y: " << delta_y << std::endl;
+		    std::vector <float> delta = {0,0};
+		    delta = pos_f - pos_i;
+		    std::cout << "delta x: " << delta[0] << std::endl;
+		    std::cout << "delta y: " << delta[1] << std::endl;
 
-
-		    if (delta_y < -0.4){  
+		    if (passwd_check == passwd) {
 			    running = false;
 		    }
+
+		    p1 = &m1;
+		    p2 = &m2;
+		    p3 = &m3;
+		    p4 = &m4;
+		    M = {p1,p2,p3,p4}; 
+		    passwd_check = "";
+
 	    }
         }
 
-        // Get current screen size
-        int winW, winH;
-        SDL_GetWindowSize(window, &winW, &winH);
 
-        // Calculate font size relative to screen height
-        int fontSize = winH / 10; // Try 10, 12, or even 6 depending on look
+	// Get current screen size
+	int winW, winH;
+	SDL_GetWindowSize(window, &winW, &winH);
 
-        // Recreate font only if size changes
-        if (fontSize != lastFontSize) {
+	// Calculate font size relative to screen height
+	int fontSize = winH / 10; 
+
+	// Recreate font only if size changes
+	if (fontSize != lastFontSize) {
             if (font) {
                 TTF_CloseFont(font);
             }
