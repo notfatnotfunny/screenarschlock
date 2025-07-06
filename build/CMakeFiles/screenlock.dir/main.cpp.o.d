@@ -189,4 +189,5 @@ CMakeFiles/screenlock.dir/main.cpp.o: \
  /usr/include/libintl.h /usr/include/c++/15.1.1/bits/codecvt.h \
  /usr/include/c++/15.1.1/bits/locale_facets_nonio.tcc \
  /usr/include/c++/15.1.1/bits/locale_conv.h \
- /usr/include/c++/15.1.1/bits/quoted_string.h
+ /usr/include/c++/15.1.1/bits/quoted_string.h \
+ /usr/include/c++/15.1.1/iostream

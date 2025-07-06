@@ -4,6 +4,7 @@
 #include <string>
 #include <sstream>
 #include <iomanip>
+#include <iostream>
 
 int main(int argc, char* argv[]) {
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
@@ -43,12 +44,43 @@ int main(int argc, char* argv[]) {
     // Store last font size to avoid redundant reloads
     int lastFontSize = 0;
     TTF_Font* font = nullptr;
+    float xi;
+    float yi;
+    float xf;
+    float yf;
 
     while (running) {
         while (SDL_PollEvent(&event)) {
             if (event.type == SDL_EVENT_QUIT) {
                 running = false;
             }
+	    if (event.tfinger.type == SDL_EVENT_FINGER_DOWN) {
+		    xi = event.tfinger.x;
+		    yi = event.tfinger.y;
+		    std::cout << "iniziale\n";
+		    std::cout << "posizione x: " << xi << std::endl;
+		    std::cout << "posizione y: " << yi << std::endl;
+
+	    }
+	    if(event.tfinger.type == SDL_EVENT_FINGER_UP) {
+		    // Assuming a finger down event before!!
+		    xf = event.tfinger.x;
+		    yf = event.tfinger.y;
+		    std::cout << "finale\n";
+		    std::cout << "posizione x: " << xf << std::endl;
+		    std::cout << "posizione y: " << yf << std::endl;
+
+		    std::cout << "differenza\n";
+		    float delta_x = xf - xi;
+		    float delta_y = yf - yi;
+		    std::cout << "delta x: " << delta_x << std::endl;
+		    std::cout << "delta y: " << delta_y << std::endl;
+
+
+		    if (delta_y < -0.4){  
+			    running = false;
+		    }
+	    }
         }
 
         // Get current screen size
@@ -56,7 +88,7 @@ int main(int argc, char* argv[]) {
         SDL_GetWindowSize(window, &winW, &winH);
 
         // Calculate font size relative to screen height
-        int fontSize = winH / 8; // Try 10, 12, or even 6 depending on look
+        int fontSize = winH / 10; // Try 10, 12, or even 6 depending on look
 
         // Recreate font only if size changes
         if (fontSize != lastFontSize) {
