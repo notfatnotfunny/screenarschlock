@@ -35,9 +35,28 @@ std::vector<T> operator-(const std::vector<T>& a, const std::vector<T>& b) {
     return result;
 }
 
+void fillCircle(std::vector<float> norm_center, int winW, int winH, int radius, SDL_Renderer* renderer) {
+	for (int i = 0; i < radius; i++){
+		for(int j = 0; j <= 360; j ++) {
+			float angle = j * M_PI / 180.0f;
+			float x = norm_center[0]*winW + i * cos(angle);
+			float y = norm_center[1]*winH + i * sin(angle);
+			SDL_RenderPoint(renderer, x, y); 
+		}
+	}
+}
+void drawCircle(std::vector<float> norm_center, int winW, int winH, int radius, SDL_Renderer* renderer) {
+	for(int j = 0; j <= 360; j ++) {
+		float angle = j * M_PI / 180.0f;
+		float x = norm_center[0]*winW + radius * cos(angle);
+		float y = norm_center[1]*winH + radius * sin(angle);
+		SDL_RenderPoint(renderer, x, y); 
+	}
+
+}
 
 #ifndef RSC_PATH
-#define RSC_PATH "./rsc" 
+#define RSC_PATH "./rsc" // default if not found
 #endif
 
 
@@ -84,12 +103,12 @@ int main(int argc, char* argv[]) {
     }; 
     std::string passwd_check = "";
 
-
+    int winW, winH;
 
     SDL_Color textColor = {255, 255, 255, 255};
 
     const std::string fontPath = std::string(RSC_PATH) + "/fonts/OpenSans-Bold.ttf";
-    std::cout << fontPath << std::endl;
+    // std::cout << fontPath << std::endl;
 
     bool running = true;
     SDL_Event event;
@@ -97,26 +116,28 @@ int main(int argc, char* argv[]) {
     // Store last font size to avoid redundant reloads
     int lastFontSize = 0;
     TTF_Font* font = nullptr;
-    std::vector <float> pos_i = {0,0};
-    std::vector <float> pos_f = {0,0};
+    // std::vector <float> pos_i = {0,0};
+    // std::vector <float> pos_f = {0,0};
     std::vector <float> pos = {0,0};
+
+    std::vector<std::vector<float>> checkedPoints;
 
     while (running) {
         while (SDL_PollEvent(&event)) {
             if (event.type == SDL_EVENT_QUIT) {
                 running = false;
             }
-	    if (event.tfinger.type == SDL_EVENT_FINGER_DOWN) {
-
-		    pos_i[0] = event.tfinger.x;
-		    pos_i[1] = event.tfinger.y;
-		    pos[0] = event.tfinger.x;
-		    pos[1] = event.tfinger.y;
-		    std::cout << "iniziale\n";
-		    std::cout << "posizione x: " << pos_i[0] << std::endl;
-		    std::cout << "posizione y: " << pos_i[1] << std::endl;
-
-	    }
+	    // if (event.tfinger.type == SDL_EVENT_FINGER_DOWN) {
+	    //
+	    //  pos_i[0] = event.tfinger.x;
+	    //  pos_i[1] = event.tfinger.y;
+	     pos[0] = event.tfinger.x;
+	     pos[1] = event.tfinger.y;
+	    //  std::cout << "iniziale\n";
+	    //  std::cout << "posizione x: " << pos_i[0] << std::endl;
+	    //  std::cout << "posizione y: " << pos_i[1] << std::endl;
+	    //
+	    // }
 	    if (event.tfinger.type == SDL_EVENT_FINGER_MOTION) {
 		    std::vector <float> diff = {event.tfinger.dx, event.tfinger.dy};
 		    // std::cout << "spostamento dx: " << diff[0] << std::endl;
@@ -124,7 +145,7 @@ int main(int argc, char* argv[]) {
 
 		    pos = pos + diff;
 
-		    if (passwd_check.size() != 4) {
+		    if (passwd_check.size() != passwd.size()) {
 			    for (int i = 0; i<M.size(); i++) {
 				    if (M[i]) {
 					    std::vector<float> distance = *(M[i]) - pos;
@@ -133,7 +154,8 @@ int main(int argc, char* argv[]) {
 					    if (abs_diff < 0.05){
 						    int num = i+1;
 						    passwd_check = passwd_check + std::to_string(num);
-						    std::cout << "found " << i << std::endl;
+						    // std::cout << "found " << i << std::endl;
+						    checkedPoints.push_back(*(M[i]));
 						    M[i] = NULL;
 					    }
 				    }
@@ -146,22 +168,19 @@ int main(int argc, char* argv[]) {
 		    }
 	    }
 	    if (event.tfinger.type == SDL_EVENT_FINGER_UP) {
-		    // Assuming a finger down event before!!
-		    pos_f[0] = event.tfinger.x;
-		    pos_f[1] = event.tfinger.y;
-		    std::cout << "finale\n";
-		    std::cout << "posizione x: " << pos_f[0] << std::endl;
-		    std::cout << "posizione y: " << pos_f[1] << std::endl;
+		    // // Assuming a finger down event before!!
+		    // pos_f[0] = event.tfinger.x;
+		    // pos_f[1] = event.tfinger.y;
+		    // std::cout << "finale\n";
+		    // std::cout << "posizione x: " << pos_f[0] << std::endl;
+		    // std::cout << "posizione y: " << pos_f[1] << std::endl;
+		    //
+		    // std::cout << "differenza\n";
+		    // std::vector <float> delta = {0,0};
+		    // delta = pos_f - pos_i;
+		    // std::cout << "delta x: " << delta[0] << std::endl;
+		    // std::cout << "delta y: " << delta[1] << std::endl;
 
-		    std::cout << "differenza\n";
-		    std::vector <float> delta = {0,0};
-		    delta = pos_f - pos_i;
-		    std::cout << "delta x: " << delta[0] << std::endl;
-		    std::cout << "delta y: " << delta[1] << std::endl;
-
-		    if (passwd_check == passwd) {
-			    running = false;
-		    }
 
 		    p1 = &m1;
 		    p2 = &m2;
@@ -169,17 +188,31 @@ int main(int argc, char* argv[]) {
 		    p4 = &m4;
 		    M = {p1,p2,p3,p4}; 
 		    passwd_check = "";
+		    checkedPoints = {};
 
 	    }
         }
 
 
 	// Get current screen size
-	int winW, winH;
 	SDL_GetWindowSize(window, &winW, &winH);
 
+	SDL_SetRenderDrawColor(renderer, 50, 50, 50, 255); // background color + alpha
+	SDL_RenderClear(renderer);
+
+	SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+	std::vector<std::vector<float>> grid = {m1,m2,m3,m4};
+	for (int i = 0; i<grid.size(); i++) {
+		drawCircle(grid[i], winW, winH, 10, renderer);
+	}
+	if (checkedPoints.size() != 0) {
+		for (int i = 0; i<checkedPoints.size(); i++) {
+			fillCircle(checkedPoints[i], winW, winH, 10, renderer);
+		}
+	}
+
 	// Calculate font size relative to screen height
-	int fontSize = winH / 10; 
+	int fontSize = winH / 12; 
 
 	// Recreate font only if size changes
 	if (fontSize != lastFontSize) {
@@ -200,32 +233,54 @@ int main(int argc, char* argv[]) {
         std::ostringstream timeStream;
         timeStream << std::put_time(localTime, "%H:%M:%S");
         std::string timeString = timeStream.str();
+	std::ostringstream dateStream;
+	dateStream << std::put_time(localTime, "%A %d %Y");
+	std::string dateString = dateStream.str();
 
-        // Render text with anti-aliasing
-        SDL_Surface* textSurface = TTF_RenderText_Blended(font, timeString.c_str(), 0, textColor);
-        if (textSurface) {
-            SDL_Texture* textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
-            if (textTexture) {
-                int textWidth = textSurface->w;
-                int textHeight = textSurface->h;
+	// std::cout << "time: " << timeString << std::endl;
+	// std::cout << "date: " << dateString << std::endl;
 
-                SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-                SDL_RenderClear(renderer);
+	// Render text with anti-aliasing
+	SDL_Surface* textSurface = TTF_RenderText_Blended(font, timeString.c_str(), 0, textColor);
+	SDL_Surface* dateSurface = TTF_RenderText_Blended(font, dateString.c_str(), 0, textColor);
+	if (textSurface && dateSurface) {
+		SDL_Texture* textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
+		SDL_Texture* dateTexture = SDL_CreateTextureFromSurface(renderer, dateSurface);
 
-                SDL_FRect destRect = {
-                    (winW - textWidth) / 2.0f,
-                    (winH - textHeight) / 2.0f,
-                    (float)textWidth,
-                    (float)textHeight
-                };
+		if (textTexture && dateTexture) {
+			int textWidth = textSurface->w;
+			int textHeight = textSurface->h;
 
-                SDL_RenderTexture(renderer, textTexture, NULL, &destRect);
-                SDL_RenderPresent(renderer);
+			int dateWidth = dateSurface->w;
+			int dateHeight = dateSurface->h;
 
-                SDL_DestroyTexture(textTexture);
-            }
-            SDL_DestroySurface(textSurface);
+			SDL_SetRenderDrawColor(renderer, 50, 50, 50, 255); // background color + alpha
+
+			SDL_FRect textRect = {
+				(winW - textWidth) / 2.0f,
+				(winH - 2.0f * textHeight) / 4.0f,
+				(float)textWidth,
+				(float)textHeight
+			};
+			SDL_FRect dateRect = {
+				(winW - dateWidth) / 2.0f,
+				(winH + 2.0f * dateHeight) / 4.0f,
+				(float)dateWidth,
+				(float)dateHeight
+			};
+
+			SDL_RenderTexture(renderer, textTexture, NULL, &textRect);
+			SDL_RenderTexture(renderer, dateTexture, NULL, &dateRect);
+
+			SDL_DestroyTexture(textTexture);
+			SDL_DestroyTexture(dateTexture);
+		}
+		SDL_DestroySurface(textSurface);
+		SDL_DestroySurface(dateSurface);
         }
+
+	SDL_RenderPresent(renderer);
+
 
         SDL_Delay(100);
     }
