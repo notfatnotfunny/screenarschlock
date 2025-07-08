@@ -191,7 +191,7 @@ int main(int argc, char* argv[]) {
 		    // delta = pos_f - pos_i;
 		    // std::cout << "delta x: " << delta[0] << std::endl;
 		    // std::cout << "delta y: " << delta[1] << std::endl;
-		    if (checkedPoints.size() != 0) {
+		    if (checkedPoints.size() != 0 && passwd_check != passwd) {
 			    attempt = false;
 		    }
 
