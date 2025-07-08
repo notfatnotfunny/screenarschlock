@@ -94,6 +94,7 @@ int main(int argc, char* argv[]) {
     std::vector<float> m2 = {3/4.0f, 1/2.0f};
     std::vector<float> m3 = {1/4.0f, 3/4.0f};
     std::vector<float> m4 = {3/4.0f, 3/4.0f};
+    std::vector<float> posToarch = {1/4.0f, 1/8.0f};
     std::vector<float>* p1 = &m1;
     std::vector<float>* p2 = &m2;
     std::vector<float>* p3 = &m3;
@@ -111,6 +112,10 @@ int main(int argc, char* argv[]) {
     // std::cout << fontPath << std::endl;
 
     bool running = true;
+    bool attempt = true;
+    bool toarch = false;
+    int timeout = 15; // 1.5 seconds
+    std::string wrongAttempt = "Wrong attempt, try again";
     SDL_Event event;
 
     // Store last font size to avoid redundant reloads
@@ -124,20 +129,26 @@ int main(int argc, char* argv[]) {
 
     while (running) {
         while (SDL_PollEvent(&event)) {
-            if (event.type == SDL_EVENT_QUIT) {
-                running = false;
-            }
-	    // if (event.tfinger.type == SDL_EVENT_FINGER_DOWN) {
-	    //
-	    //  pos_i[0] = event.tfinger.x;
-	    //  pos_i[1] = event.tfinger.y;
-	     pos[0] = event.tfinger.x;
-	     pos[1] = event.tfinger.y;
-	    //  std::cout << "iniziale\n";
-	    //  std::cout << "posizione x: " << pos_i[0] << std::endl;
-	    //  std::cout << "posizione y: " << pos_i[1] << std::endl;
-	    //
-	    // }
+		if (event.type == SDL_EVENT_QUIT) {
+			running = false;
+		}
+		if (event.tfinger.type == SDL_EVENT_FINGER_DOWN) {
+			//
+			//  pos_i[0] = event.tfinger.x;
+			//  pos_i[1] = event.tfinger.y;
+			pos[0] = event.tfinger.x;
+			pos[1] = event.tfinger.y;
+			//  std::cout << "iniziale\n";
+			//  std::cout << "posizione x: " << pos_i[0] << std::endl;
+			//  std::cout << "posizione y: " << pos_i[1] << std::endl;
+			std::vector<float> diff = pos - posToarch;
+			float toarchButtonDistance = sqrt(pow(diff[0],2) + pow(diff[1],2));
+			std::cout << toarchButtonDistance << std::endl;
+			if (toarchButtonDistance < 0.03) {
+				toarch = !toarch;
+				system("flashlight.sh");
+			}
+	    }
 	    if (event.tfinger.type == SDL_EVENT_FINGER_MOTION) {
 		    std::vector <float> diff = {event.tfinger.dx, event.tfinger.dy};
 		    // std::cout << "spostamento dx: " << diff[0] << std::endl;
@@ -180,7 +191,9 @@ int main(int argc, char* argv[]) {
 		    // delta = pos_f - pos_i;
 		    // std::cout << "delta x: " << delta[0] << std::endl;
 		    // std::cout << "delta y: " << delta[1] << std::endl;
-
+		    if (checkedPoints.size() != 0) {
+			    attempt = false;
+		    }
 
 		    p1 = &m1;
 		    p2 = &m2;
@@ -205,14 +218,22 @@ int main(int argc, char* argv[]) {
 	for (int i = 0; i<grid.size(); i++) {
 		drawCircle(grid[i], winW, winH, 10, renderer);
 	}
+
+	drawCircle(posToarch, winW, winH, 20, renderer);
+	if (toarch) {
+		fillCircle(posToarch, winW, winH, 20, renderer);
+	}
+
+
 	if (checkedPoints.size() != 0) {
 		for (int i = 0; i<checkedPoints.size(); i++) {
 			fillCircle(checkedPoints[i], winW, winH, 10, renderer);
 		}
 	}
 
+
 	// Calculate font size relative to screen height
-	int fontSize = winH / 12; 
+	int fontSize = winH / 30; 
 
 	// Recreate font only if size changes
 	if (fontSize != lastFontSize) {
@@ -239,7 +260,37 @@ int main(int argc, char* argv[]) {
 
 	// std::cout << "time: " << timeString << std::endl;
 	// std::cout << "date: " << dateString << std::endl;
+	
 
+	if (!attempt && timeout != 0) {
+
+		timeout -= 1;
+		if (timeout == 0) {
+			timeout = 5; // .5 seconds
+			attempt = true;
+		}
+
+		SDL_Color wrongAttemptColor = {255, 0, 0, 255};
+		SDL_Surface* wrongAttemptSurface = TTF_RenderText_Blended(font, wrongAttempt.c_str(), 0, wrongAttemptColor);
+		SDL_Texture* wrongAttemptTexture = SDL_CreateTextureFromSurface(renderer, wrongAttemptSurface);
+		int wrongAttemptWidth = wrongAttemptSurface->w;
+		int wrongAttemptHeight = wrongAttemptSurface->h;
+
+		SDL_FRect wrongAttemptRect = {
+			(winW - wrongAttemptWidth) / 2.0f,
+			(winH - wrongAttemptHeight) / 2.0f,
+			(float)wrongAttemptWidth,
+			(float)wrongAttemptHeight
+		};
+
+		SDL_RenderTexture(renderer, wrongAttemptTexture, NULL, &wrongAttemptRect);
+
+		SDL_DestroyTexture(wrongAttemptTexture);
+		SDL_DestroySurface(wrongAttemptSurface);
+
+		std::cout << timeout << std::endl;
+
+	}
 	// Render text with anti-aliasing
 	SDL_Surface* textSurface = TTF_RenderText_Blended(font, timeString.c_str(), 0, textColor);
 	SDL_Surface* dateSurface = TTF_RenderText_Blended(font, dateString.c_str(), 0, textColor);
